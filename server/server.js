@@ -17,25 +17,39 @@ const allowedOrigins = ['http://localhost:5173',
   'https://mern-auth-app-hu4z.vercel.app',
 
 ]
-// ✅ allow all preview deployments too
+// ✅ Pattern to match all Vercel preview URLs for your app
 const vercelPattern = /^https:\/\/mern-auth-app-hu4z(-[a-z0-9-]+)?\.vercel\.app$/;
+
+// ✅ Apply CORS to all incoming requests (including preflight)
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (
+    allowedOrigins.includes(origin) ||
+    (origin && vercelPattern.test(origin))
+  ) {
+    res.header("Access-Control-Allow-Origin", origin);
+    res.header(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, DELETE, OPTIONS"
+    );
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Origin, X-Requested-With, Content-Type, Accept"
+    );
+    res.header("Access-Control-Allow-Credentials", "true");
+  }
+
+  // ✅ Handle preflight OPTIONS requests directly
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+
+  next();
+});
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-    if (
-      allowedOrigins.includes(origin) ||
-      vercelPattern.test(origin)
-    ) {
-      return callback(null, true);
-    }
-    return callback(new Error("CORS not allowed for this origin"), false);
-  },
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  credentials: true,
-}));
+
 
 // handle preflight for all routes (safe)
 
