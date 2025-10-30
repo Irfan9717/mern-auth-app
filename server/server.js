@@ -15,24 +15,26 @@ connectDB();
 
 const allowedOrigins = ['http://localhost:5173',
   'https://mern-auth-app-hu4z.vercel.app',
-  "https://www.mern-auth-app-hu4z.vercel.app"
+
 ]
+// ✅ allow all preview deployments too
+const vercelPattern = /^https:\/\/mern-auth-app-hu4z(-[a-z0-9-]+)?\.vercel\.app$/;
 
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
   origin: (origin, callback) => {
-    // allow requests with no origin (e.g., Postman, server-side)
     if (!origin) return callback(null, true);
-    // allow if origin is in the list
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (
+      allowedOrigins.includes(origin) ||
+      vercelPattern.test(origin)
+    ) {
       return callback(null, true);
     }
-    // otherwise block
-    return callback(new Error("CORS policy: This origin is not allowed"), false);
+    return callback(new Error("CORS not allowed for this origin"), false);
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  credentials: true
+  credentials: true,
 }));
 
 // handle preflight for all routes (safe)
