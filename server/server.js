@@ -17,28 +17,27 @@ const allowedOrigins = ['http://localhost:5173',
   'https://mern-auth-app-hu4z.vercel.app'
 ];
 
-// ✅ Also allow all preview deployments
+// ✅ Pattern for Vercel preview deploys
 const vercelPattern = /^https:\/\/mern-auth-app-hu4z(-[a-z0-9-]+)?\.vercel\.app$/;
 
-// ✅ Manual middleware for flexible origin control
+// ✅ Global CORS middleware — single clean solution
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  if (
-    allowedOrigins.includes(origin) ||
-    (origin && vercelPattern.test(origin))
-  ) {
-    res.header("Access-Control-Allow-Origin", origin);
-    res.header(
+
+  if (allowedOrigins.includes(origin) || vercelPattern.test(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader(
       "Access-Control-Allow-Methods",
       "GET, POST, PUT, DELETE, OPTIONS"
     );
-    res.header(
+    res.setHeader(
       "Access-Control-Allow-Headers",
-      "Origin, X-Requested-With, Content-Type, Accept"
+      "Content-Type, Authorization, X-Requested-With"
     );
-    res.header("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Access-Control-Allow-Credentials", "true");
   }
 
+  // Handle preflight requests instantly
   if (req.method === "OPTIONS") {
     return res.sendStatus(200);
   }
