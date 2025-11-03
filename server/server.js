@@ -14,13 +14,13 @@ const port = process.env.PORT || 4000
 connectDB();
 
 const allowedOrigins = ['http://localhost:5173',
-  'https://mern-auth-app-hu4z.vercel.app',
+  'https://mern-auth-app-hu4z.vercel.app'
+];
 
-]
-// ✅ Pattern to match all Vercel preview URLs for your app
+// ✅ Also allow all preview deployments
 const vercelPattern = /^https:\/\/mern-auth-app-hu4z(-[a-z0-9-]+)?\.vercel\.app$/;
 
-// ✅ Apply CORS to all incoming requests (including preflight)
+// ✅ Manual middleware for flexible origin control
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (
@@ -39,7 +39,6 @@ app.use((req, res, next) => {
     res.header("Access-Control-Allow-Credentials", "true");
   }
 
-  // ✅ Handle preflight OPTIONS requests directly
   if (req.method === "OPTIONS") {
     return res.sendStatus(200);
   }
@@ -49,10 +48,23 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 app.use(cookieParser());
-
-
-// handle preflight for all routes (safe)
-
+// ✅ Backup CORS middleware for safety
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (
+        allowedOrigins.includes(origin) ||
+        vercelPattern.test(origin)
+      ) {
+        return callback(null, true);
+      }
+      return callback(new Error("CORS not allowed for this origin"), false);
+    },
+    credentials: true,
+  })
+);
+// app.use(cors({ origin: allowedOrigins, credentials: true }));
 // Api Endpoint 
 app.get('/', (req, res) => res.send("Api Working well"));
 

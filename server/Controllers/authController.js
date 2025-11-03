@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import userModel from '../Model/userModel.js';
 import transporter from '../config/nodemailer.js';
+import { EMAIL_VERIFY_TEMPLATE, PASSWORD_RESET_TEMPLATE } from '../config/emailTemplate.js';
 import { now } from 'mongoose';
 
 
@@ -146,7 +147,8 @@ export const sendVerifyOtp = async (req, res) => {
       from: process.env.SENDER_EMAIL,
       to: user.email,
       subject: "Account Verification OTP",
-      text: `Your OTP is ${otp}.Verify your account using this OTP.`
+      // text: `Your OTP is ${otp}.Verify your account using this OTP.`,
+      html: EMAIL_VERIFY_TEMPLATE.replace("{{otp}}", otp).replace("{{email}}", user.email)
     }
     await transporter.sendMail(mailOption);
 
@@ -225,7 +227,8 @@ export const sendResetOtp = async (req, res) => {
       from: process.env.SENDER_EMAIL,
       to: user.email,
       subject: 'Password Reset OTP',
-      text: `Your OTP for resetting your password is ${otp}. Use this OTP to proceed with resetting your password`
+      // text: `Your OTP for resetting your password is ${otp}. Use this OTP to proceed with resetting your password`,
+      html: EMAIL_VERIFY_TEMPLATE.replace("{{otp}}", otp).replace("{{email}}", user.email)
     };
 
     await transporter.sendMail(mailOption);
